@@ -1,12 +1,12 @@
-var assert = require('assert');
-var nock = require('nock');
+const assert = require('assert');
+const nock = require('nock');
 
-var Gdax = require('../index.js');
+const Gdax = require('../index.js');
 
-var testserver = require('./lib/ws_testserver');
-var port = 56632;
+const testserver = require('./lib/ws_testserver');
+let port = 56632;
 
-var EXCHANGE_API_URL = 'https://api.gdax.com';
+const EXCHANGE_API_URL = 'https://api.gdax.com';
 
 suite('OrderbookSync');
 
@@ -20,19 +20,23 @@ describe('OrderbookSync', function() {
         bids: []
       });
 
-    var server = testserver(++port, function() {
-      var orderbookSync = new Gdax.OrderbookSync('BTC-USD', EXCHANGE_API_URL, 'ws://localhost:' + port);
-      orderbookSync.on('message', function(data) {
+    const server = testserver(++port, () => {
+      const orderbookSync = new Gdax.OrderbookSync(
+        'BTC-USD',
+        EXCHANGE_API_URL,
+        'ws://localhost:' + port
+      );
+      orderbookSync.on('message', data => {
         assert.deepEqual(data, {
-          test: true,
+          test: true
         });
         server.close();
         done();
-      })
+      });
     });
 
-    server.on('connection', function(socket) {
-      socket.send(JSON.stringify({test: true}));
+    server.on('connection', socket => {
+      socket.send(JSON.stringify({ test: true }));
     });
   });
 
@@ -53,17 +57,21 @@ describe('OrderbookSync', function() {
         bids: []
       });
 
-    var server = testserver(++port, function() {
-      var orderbookSync = new Gdax.OrderbookSync(['BTC-USD', 'ETH-USD'], EXCHANGE_API_URL, 'ws://localhost:' + port);
-      var btc_usd_state = orderbookSync.books['BTC-USD'].state();
-      var eth_usd_state = orderbookSync.books['ETH-USD'].state();
+    const server = testserver(++port, function() {
+      const orderbookSync = new Gdax.OrderbookSync(
+        ['BTC-USD', 'ETH-USD'],
+        EXCHANGE_API_URL,
+        'ws://localhost:' + port
+      );
+      const btc_usd_state = orderbookSync.books['BTC-USD'].state();
+      const eth_usd_state = orderbookSync.books['ETH-USD'].state();
 
       assert.deepEqual(btc_usd_state, { asks: [], bids: [] });
       assert.deepEqual(eth_usd_state, { asks: [], bids: [] });
       assert.equal(orderbookSync.books['ETH-BTC'], undefined);
     });
 
-    server.on('connection', function(socket) {
+    server.on('connection', () => {
       server.close();
       done();
     });
