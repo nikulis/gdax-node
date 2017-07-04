@@ -21,17 +21,19 @@
     }
   ],
   "dependencies": {
-    "bintrees": "1.0.1",
-    "num": "0.3.0",
-    "request": "2.81.0",
-    "ws": "3.0.0"
+    "bintrees": "^1.0.1",
+    "num": "^0.3.0",
+    "superagent": "^3.5.2",
+    "superagent-prefix": "0.0.2",
+    "superagent-use": "^0.1.0",
+    "ws": "^3.0.0"
   },
   "description": "Client for the GDAX API",
   "devDependencies": {
     "eslint": "^4.0.0",
     "husky": "^0.13.4",
-    "lint-staged": "^3.6.1",
-    "mocha": "3.4.2",
+    "lint-staged": "^4.0.0",
+    "mocha": "^3.4.2",
     "nock": "9.0.13",
     "prettier": "^1.4.4"
   },
@@ -65,7 +67,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "prettier --single-quote --trailing-comma es5 --write",
+      "prettier --single-quote --trailing-comma es5 --print-width 86 --write",
       "git add"
     ]
   }

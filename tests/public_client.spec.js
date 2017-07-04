@@ -9,7 +9,7 @@ const EXCHANGE_API_URL = 'https://api.gdax.com';
 suite('PublicClient', () => {
   afterEach(() => nock.cleanAll());
 
-  test('.getProductTrades()', done => {
+  test('.getProductTrades()', () => {
     const expectedResponse = [
       {
         time: '2014-11-07T22:19:28.578544Z',
@@ -33,7 +33,7 @@ suite('PublicClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      publicClient.getProductTrades((err, resp, data) => {
+      publicClient.getProductTrades((err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -44,12 +44,10 @@ suite('PublicClient', () => {
       .getProductTrades()
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.isError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getProductTicker() should return values', done => {
+  test('.getProductTicker() should return values', () => {
     nock(EXCHANGE_API_URL).get('/products/BTC-USD/ticker').times(2).reply(200, {
       trade_id: 'test-id',
       price: '9.00',
@@ -57,7 +55,7 @@ suite('PublicClient', () => {
     });
 
     let cbtest = new Promise((resolve, reject) => {
-      publicClient.getProductTicker((err, resp, data) => {
+      publicClient.getProductTicker((err, data) => {
         if (err) reject(err);
 
         assert.equal(data.trade_id, 'test-id');
@@ -74,9 +72,7 @@ suite('PublicClient', () => {
       assert.equal(data.size, '5');
     });
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.isError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
   suite('.getProductTradeStream()', () => {
@@ -116,12 +112,9 @@ suite('PublicClient', () => {
       let current;
 
       publicClient
-        .getProductTradeStream(
-          from,
-          trade => Date.parse(trade.time) >= 1463068800000
-        )
-        .on('data', data => {
-          current = data.trade_id;
+        .getProductTradeStream(from, trade => Date.parse(trade.time) >= 1463068800000)
+        .on('data', trade => {
+          current = trade.trade_id;
           assert.equal(typeof current, 'number');
           assert.equal(
             current,

@@ -14,7 +14,7 @@ const authClient = new Gdax.AuthenticatedClient(key, secret, passphrase);
 suite('AuthenticatedClient', () => {
   afterEach(() => nock.cleanAll());
 
-  test('._getSignature()', function() {
+  test('._getSignature()', () => {
     const method = 'PUT';
     const relativeURI = '/orders';
     const opts = {
@@ -22,7 +22,7 @@ suite('AuthenticatedClient', () => {
       uri: 'https://api.gdax.com/orders',
     };
 
-    const sig = authClient._getSignature(method, relativeURI, opts);
+    const sig = authClient._getSignatureHeaders(method, relativeURI, opts);
 
     assert.equal(sig['CB-ACCESS-KEY'], key);
     assert.equal(sig['CB-ACCESS-PASSPHRASE'], passphrase);
@@ -31,7 +31,7 @@ suite('AuthenticatedClient', () => {
     assert(sig['CB-ACCESS-SIGN']);
   });
 
-  test('.getAccount()', done => {
+  test('.getAccount()', () => {
     const expectedResponse = {
       id: 'a1b2c3d4',
       balance: '1.100',
@@ -46,7 +46,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) =>
-      authClient.getAccount('test-id', (err, resp, data) => {
+      authClient.getAccount('test-id', (err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -57,12 +57,10 @@ suite('AuthenticatedClient', () => {
       .getAccount('test-id')
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getAccounts()', done => {
+  test('.getAccounts()', () => {
     const expectedResponse = [
       {
         id: 'a1b2c3d4',
@@ -73,13 +71,10 @@ suite('AuthenticatedClient', () => {
       },
     ];
 
-    nock(EXCHANGE_API_URL)
-      .get('/accounts')
-      .times(2)
-      .reply(200, expectedResponse);
+    nock(EXCHANGE_API_URL).get('/accounts').times(2).reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) =>
-      authClient.getAccounts((err, resp, data) => {
+      authClient.getAccounts((err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -90,12 +85,10 @@ suite('AuthenticatedClient', () => {
       .getAccounts()
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getAccountHistory()', done => {
+  test('.getAccountHistory()', () => {
     const expectedResponse = [
       {
         id: '100',
@@ -117,7 +110,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) =>
-      authClient.getAccountHistory('test-id', (err, resp, data) => {
+      authClient.getAccountHistory('test-id', (err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -128,12 +121,10 @@ suite('AuthenticatedClient', () => {
       .getAccountHistory('test-id')
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getAccountHolds()', done => {
+  test('.getAccountHolds()', () => {
     const expectedResponse = [
       {
         id: '82dcd140-c3c7-4507-8de4-2c529cd1a28f',
@@ -152,7 +143,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.getAccountHolds('test-id', (err, resp, data) => {
+      authClient.getAccountHolds('test-id', (err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -163,12 +154,10 @@ suite('AuthenticatedClient', () => {
       .getAccountHolds('test-id')
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.buy()', done => {
+  test('.buy()', () => {
     const order = {
       size: '10',
       product_id: 'BTC-USD',
@@ -188,7 +177,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.buy(order, (err, resp, data) => {
+      authClient.buy(order, (err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -199,12 +188,10 @@ suite('AuthenticatedClient', () => {
       .buy(order)
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.sell()', done => {
+  test('.sell()', () => {
     const order = {
       size: '10',
       product_id: 'BTC-USD',
@@ -224,7 +211,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.sell(order, (err, resp, data) => {
+      authClient.sell(order, (err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -235,43 +222,32 @@ suite('AuthenticatedClient', () => {
       .sell(order)
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getProductOrderBook()', done => {
-    nock(EXCHANGE_API_URL)
-      .get('/products/BTC-USD/book?level=3')
-      .times(2)
-      .reply(200, {
-        asks: [],
-        bids: [],
-      });
+  test('.getProductOrderBook()', () => {
+    nock(EXCHANGE_API_URL).get('/products/BTC-USD/book?level=3').times(2).reply(200, {
+      asks: [],
+      bids: [],
+    });
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.getProductOrderBook(
-        { level: 3 },
-        'BTC-USD',
-        (err, resp, data) => {
-          if (err) reject(err);
-          assert(data);
-          resolve();
-        }
-      );
+      authClient.getProductOrderBook({ level: 3 }, 'BTC-USD', (err, data) => {
+        if (err) reject(err);
+        assert(data);
+        resolve();
+      });
     });
 
     let promisetest = authClient
       .getProductOrderBook({ level: 3 }, 'BTC-USD')
       .then(data => assert(data));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
   suite('.cancelAllOrders()', () => {
-    test('cancels all orders', done => {
+    test('cancels all orders', () => {
       const cancelledOrdersOne = [
         'deleted-id-1',
         'deleted-id-2',
@@ -285,9 +261,7 @@ suite('AuthenticatedClient', () => {
         'deleted-id-7',
         'deleted-id-8',
       ];
-      const totalExpectedDeleted = cancelledOrdersOne.concat(
-        cancelledOrdersTwo
-      );
+      const totalExpectedDeleted = [...cancelledOrdersOne, ...cancelledOrdersTwo];
 
       const nockSetup = () => {
         // first list of Id's that just got cancelled
@@ -306,7 +280,7 @@ suite('AuthenticatedClient', () => {
       nockSetup();
 
       let cbtest = new Promise((resolve, reject) => {
-        authClient.cancelAllOrders((err, resp, data) => {
+        authClient.cancelAllOrders((err, data) => {
           if (err) reject(err);
           else assert.deepEqual(data, totalExpectedDeleted);
           resolve();
@@ -318,30 +292,29 @@ suite('AuthenticatedClient', () => {
         .then(() => authClient.cancelAllOrders())
         .then(data => assert.deepEqual(data, totalExpectedDeleted));
 
-      Promise.all([cbtest, promisetest])
-        .then(() => done())
-        .catch(err => assert.ifError(err) || assert.fail());
+      return Promise.all([cbtest, promisetest]);
     });
 
-    test('handles errors', done => {
+    test('handles errors', () => {
       nock(EXCHANGE_API_URL).delete('/orders').reply(404, null);
 
-      authClient
-        .cancelAllOrders(function(err, resp, data) {
+      return authClient
+        .cancelAllOrders((err, data) => {
           assert(err);
+          assert.ifError(data);
         })
         .then(() => assert.fail(`Didn't throw error`))
-        .catch(err => assert(err))
-        .then(() => done());
+        .catch(err => assert(err));
     });
   });
 
   suite('.cancelOrder()', () => {
-    test('requires orderID', done => {
-      let cbtest = new Promise((resolve, reject) => {
+    test('requires orderID', () => {
+      let cbtest = new Promise(resolve => {
         authClient
-          .cancelOrder((err, resp, data) => {
+          .cancelOrder((err, data) => {
             assert(err);
+            assert.ifError(data);
             resolve();
           })
           .catch(() => {});
@@ -352,12 +325,10 @@ suite('AuthenticatedClient', () => {
         .catch(err => !assert(err) && true)
         .then(val => assert.strictEqual(val, true));
 
-      Promise.all([cbtest, promisetest])
-        .then(() => done())
-        .catch(err => assert.ifError(err) || assert.fail());
+      return Promise.all([cbtest, promisetest]);
     });
 
-    test('cancels order', done => {
+    test('cancels order', () => {
       const expectedResponse = [
         {
           id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
@@ -373,13 +344,10 @@ suite('AuthenticatedClient', () => {
         },
       ];
 
-      nock(EXCHANGE_API_URL)
-        .get('/orders')
-        .times(2)
-        .reply(200, expectedResponse);
+      nock(EXCHANGE_API_URL).get('/orders').times(2).reply(200, expectedResponse);
 
       let cbtest = new Promise((resolve, reject) => {
-        authClient.getOrders((err, resp, data) => {
+        authClient.getOrders((err, data) => {
           if (err) reject(err);
           assert.deepEqual(data, expectedResponse);
           resolve();
@@ -390,13 +358,11 @@ suite('AuthenticatedClient', () => {
         .getOrders()
         .then(data => assert.deepEqual(data, expectedResponse));
 
-      Promise.all([cbtest, promisetest])
-        .then(() => done())
-        .catch(err => assert.ifError(err) || assert.fail());
+      return Promise.all([cbtest, promisetest]);
     });
   });
 
-  test('.getFills()', done => {
+  test('.getFills()', () => {
     const expectedResponse = [
       {
         trade_id: 74,
@@ -415,7 +381,7 @@ suite('AuthenticatedClient', () => {
     nock(EXCHANGE_API_URL).get('/fills').times(2).reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.getFills((err, response, data) => {
+      authClient.getFills((err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -426,12 +392,10 @@ suite('AuthenticatedClient', () => {
       .getFills()
       .then(data => assert.deepEqual(data, expectedResponse));
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.getFundings()', done => {
+  test('.getFundings()', () => {
     const expectedResponse = [
       {
         id: '280c0a56-f2fa-4d3b-a199-92df76fff5cd',
@@ -445,13 +409,10 @@ suite('AuthenticatedClient', () => {
       },
     ];
 
-    nock(EXCHANGE_API_URL)
-      .get('/funding')
-      .times(2)
-      .reply(200, expectedResponse);
+    nock(EXCHANGE_API_URL).get('/funding').times(2).reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.getFundings((err, resp, data) => {
+      authClient.getFundings((err, data) => {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -460,22 +421,19 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.getFundings();
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.repay()', function(done) {
+  test('.repay()', () => {
     const params = {
       amount: 10000,
       currency: 'USD',
     };
 
-    nock(EXCHANGE_API_URL).post('/funding/repay', params).reply(200, {});
-    nock(EXCHANGE_API_URL).post('/funding/repay', params).reply(200, {});
+    nock(EXCHANGE_API_URL).post('/funding/repay', params).times(2).reply(200, {}); // TODO mock with actual data
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.repay(params, (err, resp, data) => {
+      authClient.repay(params, (err, data) => {
         if (err) reject(err);
         resolve();
       });
@@ -483,12 +441,10 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.repay(params);
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.marginTransfer()', done => {
+  test('.marginTransfer()', () => {
     const params = {
       margin_profile_id: '45fa9e3b-00ba-4631-b907-8a98cbdf21be',
       type: 'deposit',
@@ -517,7 +473,7 @@ suite('AuthenticatedClient', () => {
       .reply(200, expectedResponse);
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.marginTransfer(params, function(err, resp, data) {
+      authClient.marginTransfer(params, function(err, data) {
         if (err) reject(err);
         assert.deepEqual(data, expectedResponse);
         resolve();
@@ -526,23 +482,18 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.marginTransfer(params);
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.closePosition()', done => {
+  test('.closePosition()', () => {
     const params = {
       repay_only: false,
     };
 
-    nock(EXCHANGE_API_URL)
-      .post('/position/close', params)
-      .times(2)
-      .reply(200, {});
+    nock(EXCHANGE_API_URL).post('/position/close', params).times(2).reply(200, {}); // TODO mock with real data
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.closePosition(params, (err, resp, data) => {
+      authClient.closePosition(params, (err, data) => {
         if (err) reject(err);
         resolve();
       });
@@ -550,12 +501,10 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.closePosition(params);
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.deposit()', done => {
+  test('.deposit()', () => {
     const transfer = {
       amount: 10480,
       coinbase_account_id: 'test-id',
@@ -567,10 +516,10 @@ suite('AuthenticatedClient', () => {
     nock(EXCHANGE_API_URL)
       .post('/transfers', expectedTransfer)
       .times(2)
-      .reply(200, {});
+      .reply(200, {}); // TODO mock with real data;
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.deposit(transfer, (err, resp, data) => {
+      authClient.deposit(transfer, (err, data) => {
         if (err) reject(err);
         resolve();
       });
@@ -578,12 +527,10 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.deposit(transfer);
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail);
+    return Promise.all([cbtest, promisetest]);
   });
 
-  test('.withdraw()', done => {
+  test('.withdraw()', () => {
     const transfer = {
       amount: 10480,
       coinbase_account_id: 'test-id',
@@ -595,10 +542,10 @@ suite('AuthenticatedClient', () => {
     nock(EXCHANGE_API_URL)
       .post('/transfers', expectedTransfer)
       .times(2)
-      .reply(200, {});
+      .reply(200, {}); // TODO mock with real data
 
     let cbtest = new Promise((resolve, reject) => {
-      authClient.withdraw(transfer, (err, resp, data) => {
+      authClient.withdraw(transfer, (err, data) => {
         if (err) reject(err);
         resolve();
       });
@@ -606,8 +553,6 @@ suite('AuthenticatedClient', () => {
 
     let promisetest = authClient.withdraw(transfer);
 
-    Promise.all([cbtest, promisetest])
-      .then(() => done())
-      .catch(err => assert.ifError(err) || assert.fail());
+    return Promise.all([cbtest, promisetest]);
   });
 });
