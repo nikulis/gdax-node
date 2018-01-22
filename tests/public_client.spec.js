@@ -2,9 +2,12 @@ const assert = require('assert');
 const nock = require('nock');
 
 const Gdax = require('../index.js');
-const publicClient = new Gdax.PublicClient();
 
 const EXCHANGE_API_URL = 'https://api.gdax.com';
+
+const publicClient = new Gdax.PublicClient(EXCHANGE_API_URL, {
+  rateLimit: false,
+});
 
 suite('PublicClient', () => {
   afterEach(() => nock.cleanAll());
@@ -57,6 +60,70 @@ suite('PublicClient', () => {
         });
 
       return Promise.all([cbtest, promisetest]);
+    });
+
+    test('rate limiting', () => {
+      const NUM_REQUESTS = 8;
+
+      const limitedClient = new Gdax.PublicClient(EXCHANGE_API_URL, {
+        rateLimit: NUM_REQUESTS - 1,
+      });
+
+      let nockTimer = new Promise(resolve => {
+        let startTime, endTime;
+
+        nock(EXCHANGE_API_URL)
+          .get('/')
+          .reply(200, () => {
+            startTime = Date.now();
+          })
+          .get('/')
+          .times(NUM_REQUESTS - 2)
+          .reply(200)
+          .get('/')
+          .reply(200, () => {
+            endTime = Date.now();
+            resolve((endTime - startTime) / 1000);
+          });
+      });
+
+      // Fire lots of requests at once
+      [...Array(NUM_REQUESTS)].forEach(() => limitedClient.request('get', []));
+
+      return nockTimer.then(elapsedSeconds => {
+        assert(elapsedSeconds >= 1);
+      });
+    });
+
+    test('rate limited retry on 429', () => {
+      const limitedClient = new Gdax.PublicClient(EXCHANGE_API_URL, {
+        rateLimit: 1000,
+      });
+
+      nock(EXCHANGE_API_URL)
+        .get('/')
+        .reply(429, () => ({ message: 'error' }))
+        .get('/')
+        .reply(200, () => ({ message: 'success' }));
+
+      return limitedClient.request('get', []).then(data => {
+        assert.deepEqual(data, { message: 'success' });
+      });
+    });
+
+    test('non-rate limited throw on 429', () => {
+      nock(EXCHANGE_API_URL)
+        .get('/')
+        .reply(429, 'whoops');
+
+      return publicClient.request('get', []).then(
+        () => assert.fail('Should not have resolved'),
+        err => {
+          assert.equal(err.message, 'HTTP 429 Error: whoops');
+          assert.equal(err.response.statusCode, 429);
+          assert.equal(err.data.message, 'whoops');
+        }
+      );
     });
   });
 

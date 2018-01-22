@@ -9,7 +9,13 @@ const passphrase = 'passphrase';
 
 const EXCHANGE_API_URL = 'https://api.gdax.com';
 
-const authClient = new Gdax.AuthenticatedClient(key, secret, passphrase);
+const authClient = new Gdax.AuthenticatedClient(
+  key,
+  secret,
+  passphrase,
+  EXCHANGE_API_URL,
+  { rateLimit: false }
+);
 
 suite('AuthenticatedClient', () => {
   afterEach(() => nock.cleanAll());

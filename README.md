@@ -118,6 +118,28 @@ publicClient.getProductOrderBook(
 );
 ```
 
+### Rate Limiting
+
+By default, `PublicClient` and `AuthenticatedClient` throttle requests to stay
+within [GDAX API rate limits](https://docs.gdax.com/#rate-limits). You can
+customize or disable this rate limiting by passing a `rateLimit` option to the
+client constructor:
+
+```js
+// Use default rate limits
+const defaultClient = new Gdax.PublicClient();
+
+// Limit to one request per second
+const limitedClient = new Gdax.PublicClient(apiURI, { rateLimit: 1 });
+
+// Disable rate limiting
+const unlimitedClient = new Gdax.PublicClient(apiURI, { rateLimit: false });
+```
+
+Rate-limited clients will also transparently handle retrying requests that
+receive a `429 Too Many Requests` response from GDAX. Clients with rate limiting
+disabled will fail on `429` responses like any other error.
+
 ### The Public API Client
 
 ```js
